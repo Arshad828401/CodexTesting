@@ -105,7 +105,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-green-50 px-6 py-10">
+    <main className="min-h-screen bg-green-100 px-6 py-10">
       <section className="mx-auto flex max-w-4xl flex-col gap-8">
         <div className="rounded-3xl bg-white/85 p-8 text-center shadow-xl shadow-orange-100 ring-1 ring-orange-100">
           <p className="text-sm font-bold uppercase tracking-[0.3em] text-orange-500">
