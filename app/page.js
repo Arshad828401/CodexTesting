@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 const junkFoods = [
   "burger",
@@ -51,38 +51,72 @@ const healthyFoods = [
   "water",
 ];
 
-function cleanFoodName(food) {
-  return food.trim().toLowerCase();
+const junkClues = [
+  "deep fried",
+  "deep-fried",
+  "fried",
+  "sugary",
+  "sugar",
+  "candy",
+  "syrup",
+  "cream-filled",
+  "processed",
+  "chips",
+  "soda",
+  "buttercream",
+];
+
+const healthyClues = [
+  "baked",
+  "grilled",
+  "steamed",
+  "roasted",
+  "fresh",
+  "whole grain",
+  "vegetable",
+  "fruit",
+  "lean protein",
+  "low sugar",
+  "unsweetened",
+];
+
+function cleanText(text) {
+  return text.trim().toLowerCase();
 }
 
-function getFoodResult(food) {
-  const cleanedFood = cleanFoodName(food);
+function hasAnyClue(text, clues) {
+  return clues.some((clue) => text.includes(clue));
+}
+
+function getFoodResult(entry) {
+  const cleanedFood = cleanText(entry.food);
+  const details = cleanText(`${entry.description} ${entry.preparation}`);
 
   if (!cleanedFood) {
     return {
       emoji: "🤔",
-      title: "Type a food to check it!",
+      title: "Add a food item to check it!",
       message: "Try examples like apple, pizza, broccoli, or soda.",
       cardStyle: "border-orange-200 bg-white",
     };
   }
 
-  if (junkFoods.includes(cleanedFood)) {
+  if (junkFoods.includes(cleanedFood) || hasAnyClue(details, junkClues)) {
     return {
       emoji: "🍟",
       title: "Junk food",
       message:
-        "This is usually high in sugar, salt, or unhealthy fats. It is okay sometimes, but not every day.",
+        "This sounds like it is high in sugar, salt, unhealthy fats, or is heavily processed. It is okay sometimes, but not every day.",
       cardStyle: "border-red-200 bg-red-50",
     };
   }
 
-  if (healthyFoods.includes(cleanedFood)) {
+  if (healthyFoods.includes(cleanedFood) || hasAnyClue(details, healthyClues)) {
     return {
       emoji: "🥦",
       title: "Not junk food",
       message:
-        "Nice choice! This food is usually a better everyday option for your body.",
+        "Nice choice! Based on the food and how it is made, this sounds like a better everyday option for your body.",
       cardStyle: "border-green-200 bg-green-50",
     };
   }
@@ -91,17 +125,43 @@ function getFoodResult(food) {
     emoji: "🧐",
     title: "Not sure yet",
     message:
-      "I do not know that food yet. A helpful clue: foods that are very sugary, very salty, or deep-fried are often junk food.",
+      "I do not know that food yet. A helpful clue: foods that are very sugary, very salty, heavily processed, or deep-fried are often junk food.",
     cardStyle: "border-yellow-200 bg-yellow-50",
   };
 }
 
+const emptyEntry = {
+  food: "",
+  description: "",
+  preparation: "",
+};
+
 export default function Home() {
-  const [food, setFood] = useState("");
-  const result = useMemo(() => getFoodResult(food), [food]);
+  const [entry, setEntry] = useState(emptyEntry);
+  const [submittedEntry, setSubmittedEntry] = useState(null);
+
+  const result = submittedEntry ? getFoodResult(submittedEntry) : null;
+
+  function updateEntry(field, value) {
+    setEntry((currentEntry) => ({
+      ...currentEntry,
+      [field]: value,
+    }));
+  }
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    setSubmittedEntry(entry);
+  }
 
   function checkExample(example) {
-    setFood(example);
+    setEntry(example);
+    setSubmittedEntry(example);
+  }
+
+  function clearEntry() {
+    setEntry(emptyEntry);
+    setSubmittedEntry(null);
   }
 
   return (
@@ -115,28 +175,73 @@ export default function Home() {
             Junk or No
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
-            Type a food item below. The app will tell you if it is junk food,
-            not junk food, or something it still needs to learn.
+            Add a food item, a short description, and how it is made. Submit the
+            form to see if it sounds like junk food, not junk food, or something
+            the app still needs to learn.
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-orange-100">
+          <form
+            onSubmit={handleSubmit}
+            className="rounded-3xl bg-white p-6 shadow-lg ring-1 ring-orange-100"
+          >
             <label htmlFor="food" className="text-lg font-bold text-gray-800">
               What food are you thinking about?
             </label>
+            <input
+              id="food"
+              value={entry.food}
+              onChange={(event) => updateEntry("food", event.target.value)}
+              placeholder="Example: pizza"
+              className="mt-4 w-full rounded-2xl border-2 border-orange-200 px-4 py-3 text-lg outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
+            />
+
+            <label
+              htmlFor="description"
+              className="mt-5 block text-lg font-bold text-gray-800"
+            >
+              Short description
+            </label>
+            <textarea
+              id="description"
+              value={entry.description}
+              onChange={(event) =>
+                updateEntry("description", event.target.value)
+              }
+              placeholder="Example: cheesy slices with tomato sauce"
+              rows={3}
+              className="mt-3 w-full rounded-2xl border-2 border-orange-200 px-4 py-3 text-lg outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
+            />
+
+            <label
+              htmlFor="preparation"
+              className="mt-5 block text-lg font-bold text-gray-800"
+            >
+              How is it made?
+            </label>
+            <textarea
+              id="preparation"
+              value={entry.preparation}
+              onChange={(event) =>
+                updateEntry("preparation", event.target.value)
+              }
+              placeholder="Example: baked in an oven, grilled, or deep-fried"
+              rows={3}
+              className="mt-3 w-full rounded-2xl border-2 border-orange-200 px-4 py-3 text-lg outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
+            />
+
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <input
-                id="food"
-                value={food}
-                onChange={(event) => setFood(event.target.value)}
-                placeholder="Example: pizza"
-                className="w-full rounded-2xl border-2 border-orange-200 px-4 py-3 text-lg outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-100"
-              />
+              <button
+                type="submit"
+                className="rounded-2xl bg-orange-500 px-6 py-3 font-bold text-white transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
+              >
+                Check food
+              </button>
               <button
                 type="button"
-                onClick={() => setFood("")}
-                className="rounded-2xl bg-orange-500 px-6 py-3 font-bold text-white transition hover:bg-orange-600 focus:outline-none focus:ring-4 focus:ring-orange-200"
+                onClick={clearEntry}
+                className="rounded-2xl bg-orange-100 px-6 py-3 font-bold text-orange-700 transition hover:bg-orange-200 focus:outline-none focus:ring-4 focus:ring-orange-200"
               >
                 Clear
               </button>
@@ -145,39 +250,81 @@ export default function Home() {
             <div className="mt-6">
               <p className="font-semibold text-gray-700">Try a quick example:</p>
               <div className="mt-3 flex flex-wrap gap-2">
-                {["apple", "pizza", "broccoli", "soda"].map((example) => (
+                {[
+                  {
+                    food: "apple",
+                    description: "A fresh, sweet fruit with fiber.",
+                    preparation: "Washed and sliced.",
+                  },
+                  {
+                    food: "pizza",
+                    description: "Cheesy slices with salty toppings.",
+                    preparation: "Baked in an oven.",
+                  },
+                  {
+                    food: "broccoli",
+                    description: "A green vegetable side dish.",
+                    preparation: "Steamed until tender.",
+                  },
+                  {
+                    food: "soda",
+                    description: "A sugary fizzy drink.",
+                    preparation: "Served cold from a can.",
+                  },
+                ].map((example) => (
                   <button
-                    key={example}
+                    key={example.food}
                     type="button"
                     onClick={() => checkExample(example)}
                     className="rounded-full bg-orange-100 px-4 py-2 text-sm font-bold capitalize text-orange-700 transition hover:bg-orange-200"
                   >
-                    {example}
+                    {example.food}
                   </button>
                 ))}
               </div>
             </div>
-          </div>
+          </form>
 
           <div
-            className={`rounded-3xl border-2 p-6 text-center shadow-lg transition ${result.cardStyle}`}
+            className={`rounded-3xl border-2 p-6 text-center shadow-lg transition ${
+              result ? result.cardStyle : "border-orange-200 bg-white"
+            }`}
           >
             <div className="text-6xl" aria-hidden="true">
-              {result.emoji}
+              {result?.emoji ?? "🍽️"}
             </div>
             <h2 className="mt-4 text-3xl font-black text-gray-900">
-              {result.title}
+              {result?.title ?? "Submit a food to check it"}
             </h2>
-            <p className="mt-4 text-lg leading-8 text-gray-700">{result.message}</p>
+            <p className="mt-4 text-lg leading-8 text-gray-700">
+              {result?.message ??
+                "The result will appear here after you add the food details and press Check food."}
+            </p>
+            {submittedEntry ? (
+              <div className="mt-6 rounded-2xl bg-white/70 p-4 text-left text-sm text-gray-700">
+                <p>
+                  <span className="font-bold">Food:</span> {submittedEntry.food}
+                </p>
+                <p className="mt-2">
+                  <span className="font-bold">Description:</span>{" "}
+                  {submittedEntry.description || "No description added."}
+                </p>
+                <p className="mt-2">
+                  <span className="font-bold">Made by:</span>{" "}
+                  {submittedEntry.preparation || "No preparation details added."}
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
 
         <div className="rounded-3xl bg-green-900 p-6 text-white shadow-lg">
           <h2 className="text-2xl font-black">How this beginner app works</h2>
           <ol className="mt-4 list-inside list-decimal space-y-2 text-green-50">
-            <li>It cleans up your typing by removing spaces and using lowercase.</li>
-            <li>It checks the food against a small junk food list.</li>
-            <li>It checks the food against a small not-junk food list.</li>
+            <li>It waits until you submit the food details.</li>
+            <li>It cleans up the food name by removing spaces and using lowercase.</li>
+            <li>It checks the food against small junk and not-junk food lists.</li>
+            <li>It also looks for clues in the description and preparation notes.</li>
             <li>If the food is not listed, it gives a simple clue instead.</li>
           </ol>
         </div>
