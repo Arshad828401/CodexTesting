@@ -56,7 +56,6 @@ const junkClues = [
   "deep-fried",
   "fried",
   "sugary",
-  "sugar",
   "candy",
   "syrup",
   "cream-filled",
@@ -65,6 +64,8 @@ const junkClues = [
   "soda",
   "buttercream",
 ];
+
+const junkSugarClues = ["added sugar", "extra sugar", "high sugar", "loaded with sugar"];
 
 const healthyClues = [
   "baked",
@@ -101,7 +102,11 @@ function getFoodResult(entry) {
     };
   }
 
-  if (junkFoods.includes(cleanedFood) || hasAnyClue(details, junkClues)) {
+  const hasHealthyClue = hasAnyClue(details, healthyClues);
+  const hasJunkClue = hasAnyClue(details, junkClues);
+  const hasJunkSugarClue = !hasHealthyClue && hasAnyClue(details, junkSugarClues);
+
+  if (junkFoods.includes(cleanedFood) || hasJunkClue || hasJunkSugarClue) {
     return {
       emoji: "🍟",
       title: "Junk food",
@@ -111,7 +116,7 @@ function getFoodResult(entry) {
     };
   }
 
-  if (healthyFoods.includes(cleanedFood) || hasAnyClue(details, healthyClues)) {
+  if (healthyFoods.includes(cleanedFood) || hasHealthyClue) {
     return {
       emoji: "🥦",
       title: "Not junk food",
