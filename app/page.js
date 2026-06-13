@@ -111,7 +111,7 @@ export default function Home() {
           <p className="text-sm font-bold uppercase tracking-[0.3em] text-orange-500">
             Beginner food checker
           </p>
-          <h1 className="mt-4 text-4xl font-black text-gray-900 sm:text-6xl">
+          <h1 className="mt-4 inline-block rounded-2xl bg-green-600 px-6 py-3 text-4xl font-black text-white sm:text-6xl">
             Junk or No
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
